@@ -29,6 +29,7 @@ using System;
 using System.Net.Http;
 using Microsoft.Identity.Core.Http;
 using Microsoft.Identity.Core.WsTrust;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace Microsoft.Identity.Core
 {
@@ -43,6 +44,8 @@ namespace Microsoft.Identity.Core
             HttpManager = httpManager ?? new HttpManager(httpClientFactory);
             WsTrustWebRequestManager = wsTrustWebRequestManager ?? new WsTrustWebRequestManager(HttpManager);
             PlatformProxy = PlatformProxyFactory.GetPlatformProxy();
+            InstanceDiscovery = new InstanceDiscovery(HttpManager);
+            AuthenticationParameters = new AuthenticationParameters(HttpManager);
         }
 
         /// <inheritdoc />
@@ -53,6 +56,13 @@ namespace Microsoft.Identity.Core
 
         /// <inheritdoc />
         public IPlatformProxy PlatformProxy { get; }
+
+        /// <inheritdoc />
+        public InstanceDiscovery InstanceDiscovery { get; }
+
+        /// <inheritdoc />
+        public AuthenticationParameters AuthenticationParameters { get; }
+
 
         public static ServiceBundle CreateWithCustomHttpManager(IHttpManager httpManager)
         {

@@ -38,8 +38,8 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Flows
     {
         private readonly UserAssertion userAssertion;
 
-        public AcquireTokenOnBehalfHandler(RequestData requestData, UserAssertion userAssertion)
-            : base(requestData)
+        public AcquireTokenOnBehalfHandler(IServiceBundle serviceBundle, RequestData requestData, UserAssertion userAssertion)
+            : base(serviceBundle, requestData)
         {
             this.userAssertion = userAssertion ?? throw new ArgumentNullException(nameof(userAssertion));
             this.DisplayableId = userAssertion.UserName;

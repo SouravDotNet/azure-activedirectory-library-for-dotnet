@@ -60,6 +60,7 @@ namespace Test.ADAL.NET.Unit
     public class AdalDotNetTests
     {
         private AuthenticationContext _context;
+        IServiceBundle _serviceBundle = TestCommon.CreateDefaultServiceBundle();
 
         [TestInitialize]
         public void Initialize()
@@ -1039,6 +1040,7 @@ namespace Test.ADAL.NET.Unit
         public void UserAssertionValidationTest()
         {
             TokenCache cache = new TokenCache();
+            cache.SetServiceBundle(_serviceBundle);
             AdalResultWrapper resultEx = TokenCacheTests.CreateCacheValue("id", "user1");
             resultEx.UserAssertionHash = "hash1";
             cache._tokenCacheDictionary.Add(
@@ -1046,7 +1048,7 @@ namespace Test.ADAL.NET.Unit
                 TokenSubjectType.Client, "id", "user1"), resultEx);
             RequestData data = new RequestData
             {
-                Authenticator = new Authenticator("https://login.microsoftonline.com/common/", false),
+                Authenticator = new Authenticator("https://login.microsoftonline.com/common/", false, _serviceBundle),
                 TokenCache = cache,
                 Resource = "resource1",
                 ClientKey = new ClientKey(new ClientCredential("client1", "something")),
@@ -1061,7 +1063,7 @@ namespace Test.ADAL.NET.Unit
             });
 
             var ex = AssertException.TaskThrows<AdalException>(() =>
-                    new AcquireTokenOnBehalfHandler(data, new UserAssertion("non-existant")).RunAsync());
+                    new AcquireTokenOnBehalfHandler(_serviceBundle, data, new UserAssertion("non-existant")).RunAsync());
 
             Assert.AreEqual("HttpRequestException:  Response status code does not indicate success: 400 (BadRequest).", ex.Message);
             // All mocks are consumed

@@ -28,6 +28,7 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Identity.Core;
 using Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.OAuth2;
 
 namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Flows
@@ -37,8 +38,8 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Flows
         private UserAssertion userAssertion;
 
 
-        public AcquireTokenUserAssertionHandler(RequestData requestData, UserAssertion userAssertion)
-            : base(requestData)
+        public AcquireTokenUserAssertionHandler(IServiceBundle serviceBundle, RequestData requestData, UserAssertion userAssertion)
+            : base(serviceBundle, requestData)
         {
             if (userAssertion == null)
             {

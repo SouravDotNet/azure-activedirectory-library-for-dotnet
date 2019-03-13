@@ -27,6 +27,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Identity.Core;
 using Microsoft.Identity.Core.Cache;
 using Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Cache;
 
@@ -34,8 +35,8 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Flows
 {
     internal class AcquireTokenSilentHandler : AcquireTokenHandlerBase
     {
-        public AcquireTokenSilentHandler(RequestData requestData, UserIdentifier userId, IPlatformParameters parameters)
-            : base(requestData)
+        public AcquireTokenSilentHandler(IServiceBundle serviceBundle, RequestData requestData, UserIdentifier userId, IPlatformParameters parameters)
+            : base(serviceBundle, requestData)
         {
             if (userId == null)
             {

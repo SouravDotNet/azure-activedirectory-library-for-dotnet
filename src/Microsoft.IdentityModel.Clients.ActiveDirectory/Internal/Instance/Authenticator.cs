@@ -47,7 +47,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Instance
 
         private static readonly Regex TenantNameRegex = new Regex(Regex.Escape(TenantlessTenantName), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
-        private void Init(string authority, bool validateAuthority)
+        private void Init(string authority, bool validateAuthority, IServiceBundle serviceBundle)
         {
             this.Authority = EnsureUrlEndsWithForwardSlash(authority);
 
@@ -59,16 +59,17 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Instance
             }
 
             this.ValidateAuthority = validateAuthority;
+            ServiceBundle = serviceBundle;
         }
 
-        public Authenticator(string authority, bool validateAuthority)
+        public Authenticator(string authority, bool validateAuthority, IServiceBundle serviceBundle)
         {
-            Init(authority, validateAuthority);
+            Init(authority, validateAuthority, serviceBundle);
         }
 
-        public async Task UpdateAuthorityAsync(string authority, RequestContext requestContext)
+        public async Task UpdateAuthorityAsync(string authority, RequestContext requestContext, IServiceBundle serviceBundle)
         {
-            Init(authority, this.ValidateAuthority);
+            Init(authority, this.ValidateAuthority, serviceBundle);
 
             updatedFromTemplate = false;
             await UpdateFromTemplateAsync(requestContext).ConfigureAwait(false);
@@ -80,7 +81,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Instance
         {
             return !string.IsNullOrWhiteSpace(Authority) ? new Uri(this.Authority).Host : null;
         }
-
+        
         public AuthorityType AuthorityType { get; private set; }
 
         public bool ValidateAuthority { get; private set; }
@@ -98,9 +99,12 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Instance
         public string SelfSignedJwtAudience { get; private set; }
 
         public Guid CorrelationId { get; set; }
+        internal IServiceBundle ServiceBundle { get; private set; }
 
         public async Task UpdateFromTemplateAsync(RequestContext requestContext)
         {
+            InstanceDiscovery instanceDiscovery = new InstanceDiscovery(ServiceBundle.HttpManager);
+
             if (!this.updatedFromTemplate)
             {
                 var authorityUri = new Uri(this.Authority);
@@ -111,16 +115,16 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Instance
                 string tenant = authorityUri.Segments[authorityUri.Segments.Length - 1].TrimEnd('/');
                 if (this.AuthorityType == AuthorityType.AAD)
                 {
-                    var metadata = await InstanceDiscovery.GetMetadataEntryAsync(authorityUri, this.ValidateAuthority, requestContext).ConfigureAwait(false);
+                    var metadata = await instanceDiscovery.GetMetadataEntryAsync(authorityUri, this.ValidateAuthority, requestContext).ConfigureAwait(false);
                     host = metadata.PreferredNetwork;
                     // All the endpoints will use this updated host, and it affects future network calls, as desired.
                     // The Authority remains its original host, and will be used in TokenCache later.
                 }
                 else
                 {
-                    InstanceDiscovery.AddMetadataEntry(host);
+                    instanceDiscovery.AddMetadataEntry(host);
                 }
-                this.AuthorizationUri = InstanceDiscovery.FormatAuthorizeEndpoint(host, tenant);
+                this.AuthorizationUri = instanceDiscovery.FormatAuthorizeEndpoint(host, tenant);
                 this.DeviceCodeUri = string.Format(CultureInfo.InvariantCulture, "https://{0}/{1}/oauth2/devicecode", host, tenant);
                 this.TokenUri = string.Format(CultureInfo.InvariantCulture, "https://{0}/{1}/oauth2/token", host, tenant);
                 this.UserRealmUriPrefix = EnsureUrlEndsWithForwardSlash(string.Format(CultureInfo.InvariantCulture, "https://{0}/common/userrealm", host));

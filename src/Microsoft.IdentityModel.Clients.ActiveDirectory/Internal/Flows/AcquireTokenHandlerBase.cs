@@ -47,7 +47,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Flows
     internal abstract class AcquireTokenHandlerBase
     {
         private readonly TokenCache _tokenCache;
-        private AdalHttpClient _client = null;
+        private OAuthClient _client = null;
 
         protected const string NullResource = "null_resource_as_optional";
         protected CacheQueryData CacheQueryData = new CacheQueryData();
@@ -56,8 +56,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Flows
         protected IBroker BrokerHelper { get; }
         internal /* internal for test, otherwise protected */ IDictionary<string, string> BrokerParameters { get; }
 
-        protected AcquireTokenHandlerBase(RequestData requestData)
+        protected IServiceBundle ServiceBundle { get; }
+
+        protected AcquireTokenHandlerBase(IServiceBundle serviceBundle, RequestData requestData)
         {
+            ServiceBundle = serviceBundle;
             Authenticator = requestData.Authenticator;
             _tokenCache = requestData.TokenCache;
             RequestContext = CreateCallState(null, this.Authenticator.CorrelationId);
@@ -306,7 +309,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Flows
         {
             if(!Authenticator.Authority.Equals(updatedAuthority, StringComparison.OrdinalIgnoreCase))
             {
-                await Authenticator.UpdateAuthorityAsync(updatedAuthority, RequestContext).ConfigureAwait(false);
+                await Authenticator.UpdateAuthorityAsync(updatedAuthority, RequestContext, ServiceBundle).ConfigureAwait(false);
                 ValidateAuthorityType();
             }
         }
@@ -398,8 +401,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Flows
 
         private async Task<AdalResultWrapper> SendHttpMessageAsync(IRequestParameters requestParameters)
         {
-            _client = new AdalHttpClient(Authenticator.TokenUri, RequestContext)
-                {Client = {BodyParameters = requestParameters}};
+            _client = new OAuthClient(ServiceBundle.HttpManager, Authenticator.TokenUri, RequestContext)
+            {
+                BodyParameters = requestParameters
+            };
+
             TokenResponse tokenResponse = await _client.GetResponseAsync<TokenResponse>().ConfigureAwait(false);
             return tokenResponse.GetResult();
         }

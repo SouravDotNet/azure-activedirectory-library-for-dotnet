@@ -57,6 +57,8 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         private volatile bool _hasStateChanged;
         private readonly object _cacheLock = new object();
 
+        internal IServiceBundle ServiceBundle { get; private set; }
+
         static TokenCache()
         {
             ModuleInitializer.EnsureModuleInitialized();
@@ -82,6 +84,11 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
 
             _tokenCacheDictionary = new ConcurrentDictionary<AdalTokenCacheKey, AdalResultWrapper>();
             _tokenCacheAccessor = PlatformProxyFactory.GetPlatformProxy().CreateTokenCacheAccessor();
+        }
+
+        internal void SetServiceBundle(IServiceBundle serviceBundle)
+        {
+            ServiceBundle = serviceBundle;
         }
 
         /// <summary>
@@ -470,9 +477,9 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
             return string.Format(CultureInfo.InvariantCulture, "https://{0}{1}", newHost, new Uri(oldUri).AbsolutePath);
         }
 
-        internal static async Task<List<string>> GetOrderedAliasesAsync(string authority, bool validateAuthority, RequestContext requestContext)
+        internal async Task<List<string>> GetOrderedAliasesAsync(string authority, bool validateAuthority, RequestContext requestContext)
         {
-            var metadata = await InstanceDiscovery.GetMetadataEntryAsync(new Uri(authority), validateAuthority, requestContext).ConfigureAwait(false);
+            var metadata = await ServiceBundle.InstanceDiscovery.GetMetadataEntryAsync(new Uri(authority), validateAuthority, requestContext).ConfigureAwait(false);
             var aliasedAuthorities = new List<string>(new string[] { metadata.PreferredCache, GetHost(authority) });
             aliasedAuthorities.AddRange(metadata.Aliases ?? Enumerable.Empty<string>());
             return aliasedAuthorities;
@@ -595,7 +602,7 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         internal async Task StoreToCacheAsync(AdalResultWrapper result, string authority, string resource, string clientId,
             TokenSubjectType subjectType, RequestContext requestContext)
         {
-            var metadata = await InstanceDiscovery.GetMetadataEntryAsync(new Uri(authority), false, requestContext).ConfigureAwait(false);
+            var metadata = await ServiceBundle.InstanceDiscovery.GetMetadataEntryAsync(new Uri(authority), false, requestContext).ConfigureAwait(false);
             StoreToCacheCommon(result, ReplaceHost(authority, metadata.PreferredCache), resource, clientId, subjectType, requestContext);
         }
 

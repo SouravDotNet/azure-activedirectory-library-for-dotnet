@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------
 // 
 // Copyright (c) Microsoft Corporation.
 // All rights reserved.
@@ -25,18 +25,24 @@
 // 
 // ------------------------------------------------------------------------------
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Microsoft.Identity.Core;
 using Microsoft.Identity.Core.Http;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Platform
+namespace Test.ADAL.NET.Common.Mocks
 {
-    internal interface IHttpClient
+    internal static class TestCommon
     {
-        IRequestParameters BodyParameters { get; set; }
-        string Accept { set; get; }
-        string ContentType { set; get; }
-        Dictionary<string, string> Headers { get; }
-        Task<IHttpWebResponse> GetResponseAsync();
+        public static IServiceBundle CreateDefaultServiceBundle()
+        {
+            return CreateServiceBundleWithCustomHttpManager(null);
+        }
+
+        public static IServiceBundle CreateServiceBundleWithCustomHttpManager(IHttpManager httpManager)
+        {
+            return ServiceBundle.CreateWithCustomHttpManager(httpManager);
+        }
     }
 }

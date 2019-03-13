@@ -27,6 +27,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Identity.Core;
 using Microsoft.Identity.Core.Cache;
 using Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.OAuth2;
 
@@ -36,8 +37,8 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Flows
     {
         private readonly DeviceCodeResult deviceCodeResult;
 
-        public AcquireTokenByDeviceCodeHandler(RequestData requestData, DeviceCodeResult deviceCodeResult)
-            : base(requestData)
+        public AcquireTokenByDeviceCodeHandler(IServiceBundle serviceBundle, RequestData requestData, DeviceCodeResult deviceCodeResult)
+            : base(serviceBundle, requestData)
         {
             this.LoadFromCache = false; //no cache lookup for token
             this.StoreToCache = (requestData.TokenCache != null);
