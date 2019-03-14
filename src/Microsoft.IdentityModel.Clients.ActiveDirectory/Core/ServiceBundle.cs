@@ -69,11 +69,11 @@ namespace Microsoft.Identity.Core
             return new ServiceBundle(httpManager: httpManager, shouldClearCaches: true);
         }
 
-        internal static IServiceBundle CreateWithHttpClient(HttpClient httpClient)
+        internal static IServiceBundle CreateWithHttpClientFactory(IHttpClientFactory httpClientFactory)
         {
-            if (httpClient != null)
+            if (httpClientFactory != null)
             {
-                return new ServiceBundle(new HttpClientFactory(httpClient));
+                return new ServiceBundle(new HttpClientFactory());
             }
             else
             {

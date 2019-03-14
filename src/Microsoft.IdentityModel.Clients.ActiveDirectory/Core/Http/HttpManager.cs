@@ -45,9 +45,9 @@ namespace Microsoft.Identity.Core.Http
             _httpClientFactory = httpClientFactory ?? new HttpClientFactory();
         }
 
-        protected virtual HttpClient GetHttpClient()
+        internal virtual HttpClient GetHttpClient()
         {
-            return _httpClientFactory.HttpClient;
+            return _httpClientFactory.GetHttpClient();
         }
 
         public async Task<HttpResponse> SendPostAsync(

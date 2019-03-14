@@ -68,7 +68,6 @@ namespace Test.ADAL.NET.Unit
         public void Initialize()
         {
             ModuleInitializer.ForceModuleInitializationTestOnly();
-            AdalHttpMessageHandlerFactory.InitializeMockProvider();
         }
 
       
@@ -300,46 +299,52 @@ namespace Test.ADAL.NET.Unit
         [TestMethod]
         public void HttpStackThrowsInternalHttpExceptions()
         {
-            AdalHttpMessageHandlerFactory.AddMockHandler(new MockHttpMessageHandler(AdalTestConstants.DefaultAuthorityCommonTenant)
+            using (var httpManager = new MockHttpManager())
             {
-                Method = HttpMethod.Get,
-                ResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+                httpManager.AddMockHandler(new MockHttpMessageHandler(AdalTestConstants.DefaultAuthorityCommonTenant)
                 {
-                    Content = new StringContent("Foo")
-                },
-                ExceptionToThrow = new InvalidOperationException()
-            });
+                    Method = HttpMethod.Get,
+                    ResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent("Foo")
+                    },
+                    ExceptionToThrow = new InvalidOperationException()
+                });
 
-            OAuthClient client = new OAuthClient(_serviceBundle.HttpManager, AdalTestConstants.DefaultAuthorityCommonTenant, null);
-            var exc = AssertException.TaskThrows<InvalidOperationException>(() =>
-                client.ExecuteRequestAsync<IHttpWebResponse>());
+                OAuthClient client = new OAuthClient(httpManager, AdalTestConstants.DefaultAuthorityCommonTenant, null);
+                var exc = AssertException.TaskThrows<InvalidOperationException>(() =>
+                    client.ExecuteRequestAsync<IHttpWebResponse>());
+            }
         }
 
         [TestMethod]
         public async Task ResponseSizeAtLimitTestAsync()
         {
-            var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var stringChars = new char[1048576];
-            var random = new Random();
-
-            for (int i = 0; i < stringChars.Length; i++)
+            using (var httpManager = new MockHttpManager())
             {
-                stringChars[i] = chars[random.Next(chars.Length)];
-            }
+                var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+                var stringChars = new char[1048576];
+                var random = new Random();
 
-            var finalString = new string(stringChars);
-            AdalHttpMessageHandlerFactory.AddMockHandler(new MockHttpMessageHandler(AdalTestConstants.DefaultAuthorityCommonTenant)
-            {
-                Method = HttpMethod.Get,
-                ResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+                for (int i = 0; i < stringChars.Length; i++)
                 {
-                    Content = new StringContent(finalString)
+                    stringChars[i] = chars[random.Next(chars.Length)];
                 }
-            });
 
-            OAuthClient client = new OAuthClient(_serviceBundle.HttpManager, AdalTestConstants.DefaultAuthorityCommonTenant, null);
+                var finalString = new string(stringChars);
+                httpManager.AddMockHandler(new MockHttpMessageHandler(AdalTestConstants.DefaultAuthorityCommonTenant)
+                {
+                    Method = HttpMethod.Get,
+                    ResponseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(finalString)
+                    }
+                });
 
-            await client.ExecuteRequestAsync< IHttpWebResponse>().ConfigureAwait(false);
+                OAuthClient client = new OAuthClient(httpManager, AdalTestConstants.DefaultAuthorityCommonTenant, null);
+
+                await client.ExecuteRequestAsync<IHttpWebResponse>().ConfigureAwait(false);
+            }
         }
 
         private static void RunAuthenticationParametersPositive(string authenticateHeader, string expectedAuthority, string excepectedResource)

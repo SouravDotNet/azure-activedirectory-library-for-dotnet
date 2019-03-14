@@ -116,21 +116,22 @@ namespace Microsoft.IdentityModel.Clients.ActiveDirectory
         /// <param name="validateAuthority">Flag to turn address validation ON or OFF.</param>
         /// <param name="tokenCache">Token cache used to lookup cached tokens on calls to AcquireToken. Use <see cref="TokenCache.DefaultShared"/> 
         /// to use ADAL's implementation of the cache on Android, iOS and UWP. Use null to store tokens only in memory.</param>
-        /// <param name="httpClient">Custom Http Client that will be used for the lifetime of this object</param>
-        public AuthenticationContext(string authority, bool validateAuthority, TokenCache tokenCache, HttpClient httpClient)
+        /// <param name="httpClientFactory">HTTP client factory</param>
+        /// <remarks>ADAL does not guarantee that it will not modify the HttpClient, for example by adding new headers.</remarks>
+        public AuthenticationContext(string authority, bool validateAuthority, TokenCache tokenCache, IHttpClientFactory httpClientFactory)
             : this(null, authority, validateAuthority ? AuthorityValidationType.True : AuthorityValidationType.False,
-                   tokenCache, httpClient)
+                   tokenCache, httpClientFactory)
         {
-            if (httpClient == null)
+            if (httpClientFactory == null)
             {
-                throw new ArgumentNullException(nameof(httpClient));
+                throw new ArgumentNullException(nameof(httpClientFactory));
             }
         }
 
         internal AuthenticationContext(IServiceBundle serviceBundle, string authority, AuthorityValidationType validateAuthority,
-            TokenCache tokenCache, HttpClient httpClient = null)
+         TokenCache tokenCache, IHttpClientFactory httpClientFactory = null)
         {
-            _serviceBundle = serviceBundle ?? ServiceBundle.CreateWithHttpClient(httpClient);
+            _serviceBundle = serviceBundle ?? ServiceBundle.CreateWithHttpClientFactory(httpClientFactory);
 
             // If authorityType is not provided (via first constructor), we validate by default (except for ASG and Office tenants).
             Authenticator = new Authenticator(authority, (validateAuthority != AuthorityValidationType.False), _serviceBundle);
