@@ -34,10 +34,8 @@ using System.Threading.Tasks;
 using Microsoft.Identity.Core.Cache;
 using Microsoft.Identity.Test.Common.Core.Mocks;
 using Microsoft.IdentityModel.Clients.ActiveDirectory.Internal;
-using Microsoft.IdentityModel.Clients.ActiveDirectory.Internal.Http;
 using Test.ADAL.NET.Common;
 using Test.ADAL.NET.Common.Mocks;
-using Test.Microsoft.Identity.Core.Unit;
 using Test.ADAL.NET.Unit.net45;
 using Microsoft.Identity.Core;
 

@@ -51,6 +51,7 @@ namespace Test.ADAL.NET.Unit
         {
             httpManager.AddMockHandler(new MockHttpMessageHandler
             {
+                Method = HttpMethod.Post,
                 ResponseMessage = MockHelpers.CreateSuccessTokenResponseMessage(
                     AdalTestConstants.DefaultUniqueId,
                     AdalTestConstants.DefaultDisplayableId,
@@ -75,6 +76,7 @@ namespace Test.ADAL.NET.Unit
         {
             httpManager.AddMockHandler(new MockHttpMessageHandler
             {
+                Method = HttpMethod.Post,
                 ResponseMessage = MockHelpers.CreateSuccessTokenResponseMessage(
                     AdalTestConstants.DefaultUniqueId,
                     AdalTestConstants.DefaultDisplayableId,

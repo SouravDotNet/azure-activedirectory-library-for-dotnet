@@ -68,9 +68,7 @@ namespace Test.ADAL.NET.Unit
         public void Initialize()
         {
             ModuleInitializer.ForceModuleInitializationTestOnly();
-        }
-
-      
+        }      
 
         [TestMethod]
         [Description("Positive Test for UrlEncoding")]

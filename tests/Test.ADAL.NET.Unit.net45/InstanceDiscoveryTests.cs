@@ -178,7 +178,6 @@ namespace Test.ADAL.NET.Unit
             using (var httpManager = new MockHttpManager())
             {
                 var serviceBundle = ServiceBundle.CreateWithCustomHttpManager(httpManager);
-                httpManager.AddMockHandler(MockHelpers.CreateInstanceDiscoveryMockHandler(AdalTestConstants.GetDiscoveryEndpoint(AdalTestConstants.DefaultAuthorityCommonTenant)));
                 var authenticator = new Authenticator("https://login.contoso.com/adfs", false, serviceBundle);
                 await authenticator.UpdateFromTemplateAsync(new RequestContext(null, new AdalLogger(new Guid()))).ConfigureAwait(false);
             }
